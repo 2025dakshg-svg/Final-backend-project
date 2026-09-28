@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>SupportDesk socket test</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 30px;
+      background: #f4f4f4;
+    }
+    h1 {
+      font-size: 20px;
+    }
+    .box {
+      background: #fff;
+      border: 1px solid #ddd;
+      padding: 15px;
+      max-width: 800px;
+    }
+    .row {
+      padding: 8px;
+      border-bottom: 1px solid #eee;
+      font-size: 14px;
+    }
+    .event {
+      color: #0b6bcb;
+      font-weight: bold;
+    }
+    .time {
+      color: #888;
+      font-size: 12px;
+    }
+    #status {
+      font-size: 13px;
+      margin-bottom: 12px;
+    }
+    input, button {
+      padding: 6px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <h1>SupportDesk live ticket events</h1>
+  <div class="box">
+    <p id="status">Connecting to socket...</p>
+    <p>
+      <input id="token" placeholder="paste jwt (optional)" size="45" />
+      <button onclick="connect()">Connect</button>
+      <button onclick="clearList()">Clear</button>
+    </p>
+    <div id="list"></div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    var socket;
+    var events = ['ticket:created', 'ticket:updated', 'ticket:assigned', 'ticket:status', 'ticket:deleted', 'comment:new'];
+
+    function connect() {
+      if (socket) socket.close();
+
+      var token = document.getElementById('token').value.trim();
+      socket = io({ auth: { token: token } });
+
+      socket.on('connect', function () {
+        document.getElementById('status').innerHTML = 'Connected. id: ' + socket.id;
+      });
+
+      socket.on('disconnect', function () {
+        document.getElementById('status').innerHTML = 'Disconnected';
+      });
+
+      events.forEach(function (name) {
+        socket.on(name, function (data) {
+          addRow(name, data);
+        });
+      });
+    }
+
+    function addRow(name, data) {
+      var list = document.getElementById('list');
+      var row = document.createElement('div');
+      row.className = 'row';
+
+      var time = document.createElement('span');
+      time.className = 'time';
+      time.innerHTML = new Date().toLocaleTimeString() + ' | ';
+
+      var label = document.createElement('span');
+      label.className = 'event';
+      label.innerHTML = name + ' ';
+
+      row.appendChild(time);
+      row.appendChild(label);
+      row.appendChild(document.createTextNode(summarise(name, data)));
+      list.insertBefore(row, list.firstChild);
+    }
+
+    function summarise(name, data) {
+      if (!data) return '';
+      if (name === 'comment:new') {
+        return (data.user ? data.user.name : '') + ': ' + data.message;
+      }
+      if (name === 'ticket:deleted') {
+        return data._id;
+      }
+      return (data.title || '') + ' | ' + (data.status || '') + ' | ' + (data.priority || '') +
+        ' | by ' + (data.createdBy ? data.createdBy.name : '') +
+        ' | assigned to ' + (data.assignedTo ? data.assignedTo.name : 'nobody');
+    }
+
+    function clearList() {
+      document.getElementById('list').innerHTML = '';
+    }
+
+    connect();
+  </script>
+</body>
+</html>

@@ -1,0 +1,305 @@
+{
+  "info": {
+    "name": "SupportDesk API",
+    "description": "Helpdesk ticketing system backend. Run the auth/login request first, the token is saved automatically and used by the other requests.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5000" },
+    { "key": "token", "value": "" },
+    { "key": "userToken", "value": "" },
+    { "key": "agentToken", "value": "" },
+    { "key": "adminToken", "value": "" },
+    { "key": "ticketId", "value": "" },
+    { "key": "agentId", "value": "" },
+    { "key": "slaId", "value": "" }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register (user)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (res.responseTime < 500) {",
+                  "  const body = pm.response.json();",
+                  "  pm.collectionVariables.set('userToken', body.token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Rahul Sharma\",\n  \"email\": \"rahul@email.com\",\n  \"password\": \"pass123\",\n  \"role\": \"user\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/register", "host": ["{{baseUrl}}"], "path": ["api", "auth", "register"] },
+            "description": "Creates a normal user. Saves the token in userToken."
+          }
+        },
+        {
+          "name": "Register (agent)",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Amit Verma\",\n  \"email\": \"agent@email.com\",\n  \"password\": \"pass123\",\n  \"role\": \"agent\",\n  \"fcmToken\": \"\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/register", "host": ["{{baseUrl}}"], "path": ["api", "auth", "register"] },
+            "description": "Creates an agent. Note down the returned _id as agentId."
+          }
+        },
+        {
+          "name": "Login (user)",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@supportdesk.com\",\n  \"password\": \"user123\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/login", "host": ["{{baseUrl}}"], "path": ["api", "auth", "login"] },
+            "description": "Seeded user login. Token is saved in userToken and token."
+          }
+        },
+        {
+          "name": "Login (agent)",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"agent@supportdesk.com\",\n  \"password\": \"agent123\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/login", "host": ["{{baseUrl}}"], "path": ["api", "auth", "login"] },
+            "description": "Seeded agent login. Token is saved in agentToken."
+          }
+        },
+        {
+          "name": "Login (admin)",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@supportdesk.com\",\n  \"password\": \"admin123\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/login", "host": ["{{baseUrl}}"], "path": ["api", "auth", "login"] },
+            "description": "Seeded admin login. Token is saved in adminToken and token."
+          }
+        },
+        {
+          "name": "Login with firebase id token",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idToken\": \"paste-firebase-id-token\",\n  \"fcmToken\": \"\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/firebase", "host": ["{{baseUrl}}"], "path": ["api", "auth", "firebase"] },
+            "description": "Works only when firebase keys are set in .env. The user is created or matched by email."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Tickets",
+      "item": [
+        {
+          "name": "Get my tickets",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/tickets?status=open&priority=high",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tickets"],
+              "query": [
+                { "key": "status", "value": "open" },
+                { "key": "priority", "value": "high" }
+              ]
+            },
+            "description": "Users see their own tickets, agents see assigned and unassigned ones, admin sees all."
+          }
+        },
+        {
+          "name": "Get ticket by id",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/tickets/{{ticketId}}", "host": ["{{baseUrl}}"], "path": ["api", "tickets", "{{ticketId}}"] }
+          }
+        },
+        {
+          "name": "Create ticket",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Cannot login to portal\",\n  \"description\": \"Getting an error on the login page since morning\",\n  \"priority\": \"high\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/tickets", "host": ["{{baseUrl}}"], "path": ["api", "tickets"] },
+            "description": "Due date is set from the sla of that priority. Broadcasts ticket:created on socket."
+          }
+        },
+        {
+          "name": "Update ticket",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Cannot login to portal\",\n  \"description\": \"Error is now 500 on the login page\",\n  \"priority\": \"medium\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/tickets/{{ticketId}}", "host": ["{{baseUrl}}"], "path": ["api", "tickets", "{{ticketId}}"] },
+            "description": "Changing priority recalculates the due date."
+          }
+        },
+        {
+          "name": "Change status",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"in-progress\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/tickets/{{ticketId}}/status", "host": ["{{baseUrl}}"], "path": ["api", "tickets", "{{ticketId}}", "status"] },
+            "description": "Agent or admin only. open, in-progress, resolved, closed. Broadcasts ticket:status."
+          }
+        },
+        {
+          "name": "Assign ticket",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"agentId\": \"{{agentId}}\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/tickets/{{ticketId}}/assign", "host": ["{{baseUrl}}"], "path": ["api", "tickets", "{{ticketId}}", "assign"] },
+            "description": "Agent or admin only. Sends fcm push to the agent if the token is saved. Broadcasts ticket:assigned."
+          }
+        },
+        {
+          "name": "Delete ticket",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{baseUrl}}/api/tickets/{{ticketId}}", "host": ["{{baseUrl}}"], "path": ["api", "tickets", "{{ticketId}}"] },
+            "description": "Owner, agent or admin can delete."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Comments",
+      "item": [
+        {
+          "name": "Add comment",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ticketId\": \"{{ticketId}}\",\n  \"message\": \"We are checking this, will update you soon\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/comments", "host": ["{{baseUrl}}"], "path": ["api", "comments"] },
+            "description": "Broadcasts comment:new on socket."
+          }
+        },
+        {
+          "name": "My comments",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/comments", "host": ["{{baseUrl}}"], "path": ["api", "comments"] }
+          }
+        },
+        {
+          "name": "Comments on a ticket",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/comments/ticket/{{ticketId}}", "host": ["{{baseUrl}}"], "path": ["api", "comments", "ticket", "{{ticketId}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "SLA",
+      "item": [
+        {
+          "name": "Get sla rules",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/sla", "host": ["{{baseUrl}}"], "path": ["api", "sla"] },
+            "description": "high 4h, medium 24h, low 72h by default."
+          }
+        },
+        {
+          "name": "Update sla rule",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"responseTimeHours\": 1,\n  \"resolutionTimeHours\": 6\n}" },
+            "url": { "raw": "{{baseUrl}}/api/sla/{{slaId}}", "host": ["{{baseUrl}}"], "path": ["api", "sla", "{{slaId}}"] },
+            "description": "Admin only. Open tickets on that priority get the new due date."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "item": [
+        {
+          "name": "All tickets",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{adminToken}}", "type": "string" }] },
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/admin/tickets", "host": ["{{baseUrl}}"], "path": ["api", "admin", "tickets"] },
+            "description": "Admin only."
+          }
+        },
+        {
+          "name": "Reports",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{adminToken}}", "type": "string" }] },
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/admin/reports", "host": ["{{baseUrl}}"], "path": ["api", "admin", "reports"] },
+            "description": "Admin only. Counts by status, by priority, sla breached and tickets per agent."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "item": [
+        {
+          "name": "Send push notification",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{adminToken}}", "type": "string" }] },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{agentId}}\",\n  \"title\": \"Test push\",\n  \"body\": \"Testing fcm from postman\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/notifications/send", "host": ["{{baseUrl}}"], "path": ["api", "notifications", "send"] },
+            "description": "Admin or agent. Gives 503 if firebase is not configured."
+          }
+        }
+      ]
+    }
+  ]
+}
