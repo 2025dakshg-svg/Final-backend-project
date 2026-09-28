@@ -23,6 +23,9 @@ async function register(req, res) {
       token: genToken(user._id),
     });
   } catch (err) {
+    if (err.code === 11000) {
+      return res.status(400).json({ message: 'Email already exists' });
+    }
     res.status(400).json({ message: err.message });
   }
 }

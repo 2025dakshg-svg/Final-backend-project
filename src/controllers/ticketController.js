@@ -85,7 +85,8 @@ async function createTicket(req, res) {
 
     const fullTicket = await Ticket.findById(ticket._id)
       .populate('createdBy', 'name email role')
-      .populate('assignedTo', 'name email role');
+      .populate('assignedTo', 'name email role')
+      .populate('sla', 'priority responseTimeHours resolutionTimeHours');
 
     emit('ticket:created', fullTicket);
     res.status(201).json(fullTicket);
@@ -128,7 +129,8 @@ async function updateTicket(req, res) {
 
     const fullTicket = await Ticket.findById(saved._id)
       .populate('createdBy', 'name email role')
-      .populate('assignedTo', 'name email role');
+      .populate('assignedTo', 'name email role')
+      .populate('sla', 'priority responseTimeHours resolutionTimeHours');
 
     emit('ticket:updated', fullTicket);
     emitToRoom('ticket:' + ticket._id, 'ticket:updated', fullTicket);
@@ -178,7 +180,8 @@ async function updateStatus(req, res) {
 
     const fullTicket = await Ticket.findById(saved._id)
       .populate('createdBy', 'name email role')
-      .populate('assignedTo', 'name email role');
+      .populate('assignedTo', 'name email role')
+      .populate('sla', 'priority responseTimeHours resolutionTimeHours');
 
     emit('ticket:status', fullTicket);
     emitToRoom('ticket:' + ticket._id, 'ticket:status', fullTicket);
@@ -215,7 +218,8 @@ async function assignTicket(req, res) {
 
     const fullTicket = await Ticket.findById(saved._id)
       .populate('createdBy', 'name email role')
-      .populate('assignedTo', 'name email role');
+      .populate('assignedTo', 'name email role')
+      .populate('sla', 'priority responseTimeHours resolutionTimeHours');
 
     emit('ticket:assigned', fullTicket);
     emitToRoom('ticket:' + ticket._id, 'ticket:assigned', fullTicket);
