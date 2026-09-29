@@ -5,6 +5,7 @@ const swaggerUi = require('swagger-ui-express');
 
 const swaggerDoc = require('./utils/swagger');
 const authRoutes = require('./routes/authRoutes');
+const userRoutes = require('./routes/userRoutes');
 const ticketRoutes = require('./routes/ticketRoutes');
 const commentRoutes = require('./routes/commentRoutes');
 const slaRoutes = require('./routes/slaRoutes');
@@ -19,16 +20,12 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 app.use('/public', express.static(path.join(__dirname, '..', 'public')));
-
-app.get('/', (req, res) => {
-  res.send('SupportDesk API is running');
-});
-
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDoc));
+app.use(express.static(path.join(__dirname, '..', 'frontend')));
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDoc));
 
 app.use('/api/auth', authRoutes);
+app.use('/api/users', userRoutes);
 app.use('/api/tickets', ticketRoutes);
 app.use('/api/comments', commentRoutes);
 app.use('/api/sla', slaRoutes);

@@ -5,7 +5,7 @@ const swaggerDoc = {
     description: 'Helpdesk ticketing system backend with jwt auth, socket.io updates and fcm push.',
     version: '1.0.0',
   },
-  servers: [{ url: 'http://localhost:5000' }],
+  servers: [{ url: 'http://localhost:8000' }],
   components: {
     securitySchemes: {
       bearerAuth: { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
@@ -128,6 +128,15 @@ const swaggerDoc = {
           },
         },
         responses: { 200: { description: 'OK' }, 503: { description: 'Firebase not configured' } },
+      },
+    },
+    '/api/users': {
+      get: {
+        tags: ['Users'],
+        summary: 'List users, filter with ?role=agent (agent or admin)',
+        security: [{ bearerAuth: [] }],
+        parameters: [{ name: 'role', in: 'query', schema: { type: 'string' } }],
+        responses: { 200: { description: 'OK' } },
       },
     },
     '/api/tickets': {

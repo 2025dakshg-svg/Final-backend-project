@@ -5,7 +5,7 @@
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
-    { "key": "baseUrl", "value": "http://localhost:5000" },
+    { "key": "baseUrl", "value": "http://localhost:8000" },
     { "key": "token", "value": "" },
     { "key": "userToken", "value": "" },
     { "key": "agentToken", "value": "" },
@@ -118,6 +118,25 @@
             },
             "url": { "raw": "{{baseUrl}}/api/auth/firebase", "host": ["{{baseUrl}}"], "path": ["api", "auth", "firebase"] },
             "description": "Works only when firebase keys are set in .env. The user is created or matched by email."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "List agents",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{agentToken}}", "type": "string" }] },
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/users?role=agent",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users"],
+              "query": [{ "key": "role", "value": "agent" }]
+            },
+            "description": "Agent or admin. Used by the assign dropdown in the ui."
           }
         }
       ]

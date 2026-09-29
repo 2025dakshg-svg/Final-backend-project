@@ -8,7 +8,7 @@ const { initSocket } = require('./src/sockets/socket');
 const { markBreachedTickets } = require('./src/utils/sla');
 const { seedSla } = require('./src/seed');
 
-const port = process.env.PORT || 5000;
+const port = process.env.PORT || 8000;
 
 async function start() {
   await connectDB();
