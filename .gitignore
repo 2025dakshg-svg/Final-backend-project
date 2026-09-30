@@ -5,3 +5,4 @@ firebase-service-account.json
 serviceAccountKey.json
 .firebase/
 .DS_Store
+client/
