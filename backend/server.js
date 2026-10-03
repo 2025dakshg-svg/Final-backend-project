@@ -7,7 +7,7 @@ const connectDB = require('./src/config/db');
 const { initFirebase } = require('./src/config/firebase');
 const { initSocket } = require('./src/sockets/socket');
 const { markBreachedTickets } = require('./src/utils/sla');
-const { seedSla, seedUsers, seedDemoTickets } = require('./src/seed');
+const { seedSla, seedUsers, seedAutomations, seedDemoTickets } = require('./src/seed');
 
 const port = process.env.PORT || 8000;
 
@@ -18,6 +18,7 @@ async function start() {
   try {
     await seedSla();
     await seedUsers();
+    await seedAutomations();
     await seedDemoTickets();
   } catch (seedErr) {
     console.error('Seeding notice:', seedErr.message);
