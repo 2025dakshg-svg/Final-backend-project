@@ -1,12 +1,23 @@
 const fs = require('fs');
+const path = require('path');
 const admin = require('firebase-admin');
 
 let enabled = false;
 
 function getServiceAccount() {
   const filePath = process.env.FIREBASE_SERVICE_ACCOUNT;
-  if (filePath && fs.existsSync(filePath)) {
-    return JSON.parse(fs.readFileSync(filePath, 'utf8'));
+  if (filePath) {
+    const candidatePaths = [
+      filePath,
+      path.resolve(process.cwd(), filePath),
+      path.resolve(__dirname, '..', '..', filePath),
+      path.resolve(__dirname, '..', '..', '..', filePath),
+    ];
+    for (const p of candidatePaths) {
+      if (fs.existsSync(p)) {
+        return JSON.parse(fs.readFileSync(p, 'utf8'));
+      }
+    }
   }
 
   const projectId = process.env.FIREBASE_PROJECT_ID;

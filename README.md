@@ -1,10 +1,10 @@
 # SupportDesk
 
-A helpdesk ticketing system backend for my final year project. Users raise tickets, agents assign and resolve them, admins see everything and get reports. Real-time ticket updates run over socket.io and agents get an FCM push when a ticket is assigned to them.
+A helpdesk ticketing system backend for incident management and SLA tracking. Users raise tickets, agents assign and resolve them, admins oversee operations and view analytics reports. Real-time ticket updates run over Socket.io and agents receive FCM push notifications when tickets are assigned.
 
-Built with Node.js, Express, MongoDB (Mongoose), JWT auth with optional Firebase sign-in, socket.io and firebase-admin for push notifications.
+Built with Node.js, Express, MongoDB (Mongoose), JWT auth with optional Firebase sign-in, Socket.io, and firebase-admin.
 
-## Tech stack
+## Tech Stack
 
 - Node.js + Express (REST API)
 - MongoDB + Mongoose
@@ -14,139 +14,155 @@ Built with Node.js, Express, MongoDB (Mongoose), JWT auth with optional Firebase
 
 ## Setup
 
-Prerequisites: Node 18+, MongoDB running locally (or a MONGO_URI for Atlas).
+Prerequisites: Node 18+, MongoDB running locally (or a MONGO_URI for MongoDB Atlas).
 
-```
+```bash
+cd backend
 npm install
 cp .env.example .env
 npm run seed
 npm start
 ```
 
-`npm run seed` creates the three SLA rules (high 4h, medium 24h, low 72h) and three login accounts for testing. If MongoDB is already running on your machine, the default connection string works as is.
+`npm run seed` creates default SLA rules (High 4h, Medium 24h, Low 72h) and initial test accounts.
 
-Seeded accounts:
+Default seed account placeholders:
 
-| role  | email                      | password |
-|-------|----------------------------|----------|
-| user  | user@supportdesk.com       | user123  |
-| agent | agent@supportdesk.com      | agent123 |
-| admin | admin@supportdesk.com      | admin123 |
+| Role  | Email Placeholder   | Password Placeholder |
+|-------|---------------------|----------------------|
+| user  | `<user_email>`      | `<user_password>`    |
+| agent | `<agent_email>`     | `<agent_password>`   |
+| admin | `<admin_email>`     | `<admin_password>`   |
 
-The SLA rules are also seeded automatically on first server start, so the app runs without `npm run seed` too.
+> Note: Initial accounts can be configured in `backend/src/seed.js` or registered through `/api/auth/register`. SLA policies are automatically seeded on first server boot even if `npm run seed` is not run manually.
 
-## Environment variables
+## Environment Variables
 
-| variable                    | purpose                                                  |
+Configure these inside `backend/.env`:
+
+| Variable                    | Purpose                                                  |
 |-----------------------------|----------------------------------------------------------|
-| PORT                        | server port, default 8000                                |
-| MONGO_URI                   | mongo connection string                                  |
-| JWT_SECRET                  | secret used to sign jwts                                  |
-| JWT_EXPIRES_IN              | token expiry, default 7d                                  |
-| FIREBASE_SERVICE_ACCOUNT    | path to the firebase service account json                |
-| FIREBASE_PROJECT_ID         | alternative to the file, plus the two below              |
-| FIREBASE_CLIENT_EMAIL       |                                                          |
-| FIREBASE_PRIVATE_KEY        |                                                          |
+| PORT                        | Server port, default 8000                                |
+| MONGO_URI                   | MongoDB connection URI                                   |
+| JWT_SECRET                  | Secret key used to sign JWTs                             |
+| JWT_EXPIRES_IN              | Token validity duration (e.g. 7d)                        |
+| FIREBASE_SERVICE_ACCOUNT    | Path to Firebase service account JSON file               |
+| FIREBASE_PROJECT_ID         | Alternative to file: Firebase Project ID                 |
+| FIREBASE_CLIENT_EMAIL       | Alternative to file: Firebase Client Email               |
+| FIREBASE_PRIVATE_KEY        | Alternative to file: Firebase Private Key                |
 
-Firebase is optional. If neither the file nor the individual vars are present, the app logs a warning and runs without push notifications or firebase login.
+Firebase integration is optional. If unconfigured, the system runs with local JWT authentication and logs that push notifications are disabled.
 
 ## Frontend
 
-There is a small browser app included in the frontend/ folder, served at http://localhost:8000/. It is plain HTML + vanilla JS with no build step. It covers login/register, the ticket list with filters, creating tickets, the ticket detail page with comments and status/assign controls, a live socket feed and an admin reports page. Open the root url in a browser, log in with a seeded account and open two tabs to watch events update live.
+The browser client is located in `frontend/` and served at `http://localhost:8000/`. It is a lightweight single-page application covering authentication, ticket queues with multi-parameter filtering, ticket detail with activity stream comments, SLA timers, and an admin reporting view.
 
-## API list
+## API Endpoints
 
-Base URL: http://localhost:8000
+Base URL: `http://localhost:8000`
 
-Auth
-- POST /api/auth/register
-- POST /api/auth/login
-- POST /api/auth/firebase  (login with a firebase id token)
+### Authentication
+- `POST /api/auth/register`
+- `POST /api/auth/login`
+- `POST /api/auth/firebase` (login with Firebase ID token)
 
-Users
-- GET /api/users?role=agent  (agent or admin)
+### Users
+- `GET /api/users?role=agent` (Agent or Admin)
 
-Tickets
-- GET /api/tickets             (filters: status, priority)
-- GET /api/tickets/:id
-- POST /api/tickets
-- PUT /api/tickets/:id
-- DELETE /api/tickets/:id
-- PUT /api/tickets/:id/status
-- PUT /api/tickets/:id/assign
+### Tickets
+- `GET /api/tickets` (filters: `status`, `priority`)
+- `GET /api/tickets/:id`
+- `POST /api/tickets`
+- `PUT /api/tickets/:id`
+- `DELETE /api/tickets/:id`
+- `PUT /api/tickets/:id/status`
+- `PUT /api/tickets/:id/assign`
+- `POST /api/tickets/:id/attachments`
+- `GET /api/tickets/:id/attachments`
 
-Comments
-- POST /api/comments
-- GET /api/comments
-- GET /api/comments/ticket/:id
+### Comments
+- `POST /api/comments`
+- `GET /api/comments`
+- `GET /api/comments/ticket/:id`
 
-SLA
-- GET /api/sla
-- PUT /api/sla/:id          (admin)
+### SLA Policies
+- `GET /api/sla`
+- `PUT /api/sla/:id` (Admin)
 
-Admin
-- GET /api/admin/tickets    (admin)
-- GET /api/admin/reports    (admin)
+### Admin & Analytics
+- `GET /api/admin/tickets` (Admin)
+- `GET /api/admin/reports` (Admin)
+- `GET /api/admin/db-stats` (Admin)
 
-Notifications
-- POST /api/notifications/send
+### Automations
+- `GET /api/automations`
+- `POST /api/automations` (Admin)
+- `POST /api/automations/run` (Admin)
 
-Swagger UI is available at http://localhost:8000/api-docs and the Postman collection is in postman_collection.json (import it, the login requests save the tokens automatically).
+### Notifications
+- `POST /api/notifications/send`
 
-Every protected request needs `Authorization: Bearer <token>`.
+Interactive Swagger documentation is available at `http://localhost:8000/api-docs`. A Postman collection is located at `backend/postman_collection.json`.
 
-## Rules
+All protected requests require an `Authorization: Bearer <token>` header.
 
-- A normal user only sees and edits their own tickets.
-- An agent sees tickets assigned to them plus open unassigned ones. Only agents and admins can assign tickets or change status.
-- Admins see all tickets and the reports page.
-- A ticket gets a due date from the SLA of its priority. A job runs every minute and marks overdue tickets as breached.
+## Business Rules
 
-## Socket.io events
+- Regular users can only create, view, and comment on their own tickets.
+- Agents can view tickets assigned to them or unassigned open tickets, modify status, and reassign tickets.
+- Admins possess global read/write access across tickets, SLA configurations, automations, and operational reports.
+- Each ticket is assigned a resolution deadline based on the priority SLA. A background worker evaluates tickets every 60 seconds and marks overdue tickets as breached.
 
-The server emits these events:
-- ticket:created
-- ticket:updated
-- ticket:deleted
-- ticket:assigned
-- ticket:status
-- comment:new
+## Real-Time Events (Socket.io)
 
-To test sockets, start the app, open http://localhost:8000/public/ in two browser tabs and create or update a ticket from the API (or from Postman). Both tabs show the live events. If you paste a jwt into the page, the socket joins your user room so you only get events for tickets you can actually see.
+The backend server emits the following events:
+- `ticket:created`
+- `ticket:updated`
+- `ticket:deleted`
+- `ticket:assigned`
+- `ticket:status`
+- `comment:new`
 
-You can also test with the socket.io-client package:
+A socket test interface is available at `http://localhost:8000/public/`. Connecting sockets can authenticate with a JWT to automatically join user-specific rooms and receive filtered updates.
 
-```js
-const io = require('socket.io-client');
-const socket = io('http://localhost:8000');
-socket.on('ticket:created', (data) => console.log(data));
+## Firebase Configuration (Optional)
+
+1. Generate a Service Account key from the Firebase Console.
+2. Place the file inside `backend/` and set `FIREBASE_SERVICE_ACCOUNT=./firebase-service-account.json`, or provide the individual environment variables (`FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL`, `FIREBASE_PRIVATE_KEY`).
+3. Boot the backend server. The logs will display `Firebase connected`.
+
+## Deployment (Render)
+
+1. Push this repository to GitHub.
+2. In Render, select **New > Blueprint** and select the repository.
+3. The root `render.yaml` automatically designates `backend` as the `rootDir`, installs backend dependencies, and executes `npm start`.
+4. Configure `MONGO_URI` and `JWT_SECRET` in the Render environment variables prompt.
+
+## Project Structure
+
 ```
-
-## Firebase setup (optional)
-
-1. Create a project in the Firebase console and download the service account json.
-2. Either put the file somewhere and set `FIREBASE_SERVICE_ACCOUNT=./firebase-service-account.json`, or paste the project id, client email and private key as individual env vars. The private key has literal \n characters that the app converts back to newlines.
-3. Restart the app. You should see "Firebase connected".
-4. Agent push tokens come from the mobile/web app calling the Android GoogleSignIn or Firebase Auth SDK and sending the registration token to /api/auth/register or /api/auth/firebase as fcmToken.
-
-## Deploying to Render
-
-Push this repo to GitHub, then in Render create a new Web Service. Give it a MongoDB Atlas connection string, a JWT_SECRET, and optionally the firebase env vars. A render.yaml is included for blueprints: in Render choose "Blueprint" when creating from repo and it will read the envVar keys marked sync:false, which you fill in once.
-
-## Project structure
-
-```
-src/
-  config/       db and firebase setup
-  models/       user, ticket, comment, sla
-  controllers/  request handlers
-  routes/       route definitions
-  middleware/   auth, role check, validation, error handlers
-  sockets/      socket.io setup
-  utils/        jwt, sla helpers, swagger doc
-  app.js        express app
-  seed.js       demo data
-server.js       entry point
-frontend/       browser app (served at /)
-public/         socket test page
+project-root/
+├── backend/
+│   ├── server.js               # Server entry point (HTTP & Socket.io)
+│   ├── package.json            # Backend dependencies and scripts
+│   ├── package-lock.json
+│   ├── .env                    # Environment configuration (ignored by git)
+│   ├── .env.example            # Environment variable template
+│   ├── postman_collection.json # API collection for testing
+│   └── src/
+│       ├── config/             # DB and Firebase connection logic
+│       ├── controllers/        # Request handling and business logic
+│       ├── middleware/         # Auth, validation, RBAC, error handlers
+│       ├── models/             # Mongoose schemas (User, Ticket, Comment, SLA, Automation)
+│       ├── routes/             # Express API router definitions
+│       ├── sockets/            # Socket.io connection and room handling
+│       ├── utils/              # Token helpers, SLA checker, Swagger spec
+│       ├── app.js              # Express app configuration & static asset routing
+│       └── seed.js             # SLA rules and test accounts seeder
+├── frontend/                   # Vanilla JS Single Page Application (served at /)
+├── client/                     # React / Vite frontend application
+├── public/                     # Static assets & socket test client
+├── render.yaml                 # Render blueprint configuration (rootDir: backend)
+├── README.md                   # Project documentation
+└── .gitignore                  # Git ignore rules
 ```

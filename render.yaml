@@ -3,6 +3,7 @@ services:
     name: supportdesk
     env: node
     plan: free
+    rootDir: backend
     buildCommand: npm install
     startCommand: npm start
     healthCheckPath: /
@@ -10,6 +11,4 @@ services:
       - key: MONGO_URI
         sync: false
       - key: JWT_SECRET
-        sync: false
-      - key: FIREBASE_SERVICE_ACCOUNT
         sync: false
