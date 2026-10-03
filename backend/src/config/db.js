@@ -1,8 +1,9 @@
 const mongoose = require('mongoose');
 
+const ATLAS_URI = 'mongodb+srv://2025dakshg_db_user:CYAhQ8szu58A1GR9@hospitalmgmt.jscgsxa.mongodb.net/supportdesk?retryWrites=true&w=majority';
+
 async function connectDB() {
-  const isCloud = process.env.RENDER || process.env.NODE_ENV === 'production';
-  const uri = process.env.MONGO_URI || (!isCloud ? 'mongodb://127.0.0.1:27017/supportdesk' : null);
+  const uri = process.env.MONGO_URI || ATLAS_URI;
 
   if (!uri) {
     console.error('=================================================================');
