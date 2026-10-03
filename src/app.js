@@ -11,6 +11,7 @@ const commentRoutes = require('./routes/commentRoutes');
 const slaRoutes = require('./routes/slaRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
+const automationRoutes = require('./routes/automationRoutes');
 const { notFound, errorHandler } = require('./middleware/error');
 
 const app = express();
@@ -31,6 +32,8 @@ app.use('/api/comments', commentRoutes);
 app.use('/api/sla', slaRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/automations', automationRoutes);
+
 
 app.use(notFound);
 app.use(errorHandler);

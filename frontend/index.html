@@ -3,24 +3,101 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>SupportDesk</title>
+  <title>SupportDesk - Incident Management and SLA Tracking</title>
+  <meta name="description" content="Helpdesk ticketing backend and incident management system with MongoDB database storage, SLA tracking, and real-time event updates." />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/style.css" />
 </head>
 <body>
-  <header id="header" class="hidden">
-    <div class="brand">SupportDesk</div>
-    <nav>
-      <a href="#/tickets">Tickets</a>
-      <a href="#/create">New ticket</a>
-      <a href="#/reports" id="nav-reports" class="hidden">Reports</a>
-    </nav>
-    <div class="user-box">
-      <span id="user-label"></span>
-      <button id="logout-btn">Logout</button>
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+  <!-- Main Application Header -->
+  <header id="header" class="app-header hidden">
+    <div class="header-inner">
+      <div class="brand-group">
+        <a href="#/tickets" class="brand-link">
+          <div class="brand-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+              <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+              <line x1="12" y1="22.08" x2="12" y2="12"></line>
+            </svg>
+          </div>
+          <div class="brand-text">
+            <span class="brand-title">SupportDesk</span>
+            <span class="brand-subtitle">Incident and SLA Management</span>
+          </div>
+        </a>
+      </div>
+
+      <nav class="nav-links">
+        <a href="#/tickets" id="nav-tickets" class="nav-item">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+          <span>Tickets</span>
+        </a>
+        <a href="#/create" id="nav-create" class="nav-item">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          <span>New Ticket</span>
+        </a>
+        <a href="#/reports" id="nav-reports" class="nav-item hidden">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+          <span>SLA Reports</span>
+        </a>
+        <a href="#/database" id="nav-database" class="nav-item">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path></svg>
+          <span>Database Status</span>
+        </a>
+        <a href="/api-docs" target="_blank" class="nav-item nav-docs" title="Open API Documentation">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
+          <span>API Docs</span>
+        </a>
+      </nav>
+
+      <div class="user-box">
+        <div class="live-pill" id="socket-status" title="WebSocket Status">
+          <span class="live-dot"></span>
+          <span class="live-text">Realtime Active</span>
+        </div>
+        <div class="user-profile-badge">
+          <div class="user-avatar" id="user-avatar">--</div>
+          <div class="user-info">
+            <span class="user-name" id="user-label">User</span>
+            <span class="user-role-badge" id="user-role-badge">USER</span>
+          </div>
+        </div>
+        <button id="logout-btn" class="btn-logout" title="Sign out">
+          <span>Logout</span>
+        </button>
+      </div>
     </div>
   </header>
 
-  <main id="app" class="container"></main>
+  <!-- Main View Container -->
+  <main id="app" class="app-container"></main>
+
+  <!-- Enterprise Footer with Legal Links -->
+  <footer class="app-footer">
+    <div class="footer-inner">
+      <div class="footer-copy">
+        &copy; 2026 SupportDesk System. All rights reserved.
+      </div>
+      <div class="footer-links">
+        <a href="#/tickets">Tickets Queue</a>
+        <span class="footer-sep">/</span>
+        <a href="#/database">Database Status</a>
+        <span class="footer-sep">/</span>
+        <a href="#/privacy">Privacy Policy</a>
+        <span class="footer-sep">/</span>
+        <a href="#/terms">Terms and Conditions</a>
+        <span class="footer-sep">/</span>
+        <a href="/api-docs" target="_blank">Swagger API</a>
+      </div>
+    </div>
+  </footer>
 
   <script src="/socket.io/socket.io.js"></script>
   <script src="/app.js"></script>

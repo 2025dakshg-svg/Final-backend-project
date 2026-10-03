@@ -81,4 +81,49 @@ async function getReports(req, res) {
   }
 }
 
-module.exports = { getAllTickets, getReports };
+// GET /api/admin/db-stats
+async function getDatabaseStats(req, res) {
+  try {
+    const Comment = require('../models/Comment');
+    const SLA = require('../models/SLA');
+    const mongoose = require('mongoose');
+
+    const [userCount, ticketCount, commentCount, slaCount, slas] = await Promise.all([
+      User.countDocuments(),
+      Ticket.countDocuments(),
+      Comment.countDocuments(),
+      SLA.countDocuments(),
+      SLA.find().lean(),
+    ]);
+
+    const usersByRole = await User.aggregate([
+      { $group: { _id: '$role', count: { $sum: 1 } } }
+    ]);
+
+    const roleMap = {};
+    usersByRole.forEach(r => { roleMap[r._id] = r.count; });
+
+    res.json({
+      database: mongoose.connection.name || 'supportdesk',
+      connected: mongoose.connection.readyState === 1,
+      readyState: mongoose.connection.readyState,
+      host: mongoose.connection.host || '127.0.0.1',
+      port: mongoose.connection.port || 27017,
+      collections: {
+        users: userCount,
+        tickets: ticketCount,
+        comments: commentCount,
+        slas: slaCount,
+      },
+      usersByRole: roleMap,
+      slaPolicies: slas,
+      uptimeSeconds: process.uptime(),
+      serverTime: new Date().toISOString(),
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+}
+
+module.exports = { getAllTickets, getReports, getDatabaseStats };
+

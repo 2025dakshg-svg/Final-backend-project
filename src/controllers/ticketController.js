@@ -4,14 +4,12 @@ const { getSlaForPriority, getDueDate } = require('../utils/sla');
 const { emit, emitToRoom } = require('../sockets/socket');
 const firebase = require('../config/firebase');
 
-// users see their own tickets, agents see assigned and open ones, admin sees all
+// users see their own tickets, agents and admins see all tickets in the queue
 function buildFilter(user, query) {
   const filter = {};
 
   if (user.role === 'user') {
     filter.createdBy = user._id;
-  } else if (user.role === 'agent') {
-    filter.$or = [{ assignedTo: user._id }, { assignedTo: null }];
   }
 
   if (query.status) filter.status = query.status;
@@ -20,11 +18,20 @@ function buildFilter(user, query) {
   return filter;
 }
 
-async function canView(ticket, user) {
-  if (user.role === 'admin') return true;
-  if (user.role === 'user') return ticket.createdBy.toString() === user._id.toString();
-  return !ticket.assignedTo || ticket.assignedTo.toString() === user._id.toString();
+function canView(ticket, user) {
+  if (!ticket || !user) return false;
+  // Admins and Support Agents can view any ticket in the system
+  if (user.role === 'admin' || user.role === 'agent') return true;
+
+  // Regular users can only view tickets they created
+  const creatorId = ticket.createdBy && (ticket.createdBy._id || ticket.createdBy);
+  if (user.role === 'user') {
+    return creatorId && creatorId.toString() === user._id.toString();
+  }
+
+  return true;
 }
+
 
 // GET /api/tickets
 async function getTickets(req, res) {
@@ -103,13 +110,17 @@ async function updateTicket(req, res) {
       return res.status(404).json({ message: 'Ticket not found' });
     }
 
-    const isOwner = ticket.createdBy.toString() === req.user._id.toString();
+    const creatorId = ticket.createdBy && (ticket.createdBy._id || ticket.createdBy);
+    const assignedId = ticket.assignedTo && (ticket.assignedTo._id || ticket.assignedTo);
+    const isOwner = creatorId && creatorId.toString() === req.user._id.toString();
+
     if (req.user.role === 'user' && !isOwner) {
       return res.status(403).json({ message: 'Not authorized' });
     }
-    if (req.user.role === 'agent' && !isOwner && ticket.assignedTo && ticket.assignedTo.toString() !== req.user._id.toString()) {
+    if (req.user.role === 'agent' && !isOwner && assignedId && assignedId.toString() !== req.user._id.toString()) {
       return res.status(403).json({ message: 'Not authorized' });
     }
+
 
     const { title, description, priority } = req.body;
 
@@ -148,10 +159,12 @@ async function deleteTicket(req, res) {
       return res.status(404).json({ message: 'Ticket not found' });
     }
 
-    const isOwner = ticket.createdBy.toString() === req.user._id.toString();
+    const creatorId = ticket.createdBy && (ticket.createdBy._id || ticket.createdBy);
+    const isOwner = creatorId && creatorId.toString() === req.user._id.toString();
     if (req.user.role === 'user' && !isOwner) {
       return res.status(403).json({ message: 'Not authorized' });
     }
+
 
     await ticket.deleteOne();
     emit('ticket:deleted', { _id: ticket._id });

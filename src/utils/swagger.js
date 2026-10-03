@@ -345,7 +345,82 @@ const swaggerDoc = {
         responses: { 200: { description: 'OK' }, 503: { description: 'Firebase not configured' } },
       },
     },
+    '/api/tickets/{id}/attachments': {
+      post: {
+        tags: ['Attachments (Optional Advanced Feature)'],
+        summary: 'Add file attachment metadata to a ticket',
+        parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['filename'],
+                properties: {
+                  filename: { type: 'string' },
+                  fileUrl: { type: 'string' },
+                  fileType: { type: 'string' },
+                  sizeBytes: { type: 'number' },
+                },
+              },
+            },
+          },
+        },
+        responses: { 201: { description: 'Created' } },
+      },
+      get: {
+        tags: ['Attachments (Optional Advanced Feature)'],
+        summary: 'List all attachments for a ticket',
+        parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+        responses: { 200: { description: 'OK' } },
+      },
+    },
+    '/api/automations': {
+      get: {
+        tags: ['Automations (Optional Advanced Feature)'],
+        summary: 'List all active automation rules',
+        responses: { 200: { description: 'OK' } },
+      },
+      post: {
+        tags: ['Automations (Optional Advanced Feature)'],
+        summary: 'Create custom automation rule (Admin)',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['name', 'action'],
+                properties: {
+                  name: { type: 'string' },
+                  trigger: { type: 'string', enum: ['on_ticket_create', 'on_sla_breach', 'scheduled_cleanup'] },
+                  action: { type: 'string', enum: ['auto_assign_high_priority', 'auto_close_resolved', 'escalate_breach'] },
+                  isActive: { type: 'boolean' },
+                },
+              },
+            },
+          },
+        },
+        responses: { 201: { description: 'Created' } },
+      },
+    },
+    '/api/automations/run': {
+      post: {
+        tags: ['Automations (Optional Advanced Feature)'],
+        summary: 'Manually trigger background automation execution (Admin)',
+        responses: { 200: { description: 'Executed' } },
+      },
+    },
+    '/api/admin/db-stats': {
+      get: {
+        tags: ['Admin'],
+        summary: 'Live MongoDB connection status, collections counts, and ODM health',
+        responses: { 200: { description: 'OK' } },
+      },
+    },
   },
 };
+
 
 module.exports = swaggerDoc;

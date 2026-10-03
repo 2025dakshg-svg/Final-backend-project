@@ -69,4 +69,16 @@ router.put(
   assignTicket
 );
 
+// Optional Advanced Feature: Attachments API (Page 73 of Case Study)
+const {
+  addAttachment,
+  getAttachments,
+  deleteAttachment,
+} = require('../controllers/attachmentController');
+
+router.post('/:id/attachments', protect, addAttachment);
+router.get('/:id/attachments', protect, getAttachments);
+router.delete('/:id/attachments/:attachmentId', protect, deleteAttachment);
+
 module.exports = router;
+

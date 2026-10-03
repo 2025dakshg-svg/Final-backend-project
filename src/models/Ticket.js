@@ -48,7 +48,24 @@ const ticketSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+    attachments: [
+      {
+        filename: { type: String, required: true },
+        fileUrl: { type: String, required: true },
+        fileType: { type: String, default: 'application/octet-stream' },
+        sizeBytes: { type: Number, default: 0 },
+        uploadedBy: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'User',
+        },
+        uploadedAt: {
+          type: Date,
+          default: Date.now,
+        },
+      },
+    ],
   },
+
   {
     timestamps: true,
   }
